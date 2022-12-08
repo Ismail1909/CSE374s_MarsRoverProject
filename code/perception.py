@@ -114,4 +114,4 @@ def perception_step(Rover):
     #rock samples
     rock_img = find_rock(warped_img)
     #obstacles
-    obstacles_img = np.absolute(np.float32(terrain_img)-1) * mask # cv2.bitwise_not(terrain_img)-254
+    obstacles_img = np.absolute(np.float32(terrain_img)-1) * mask 
