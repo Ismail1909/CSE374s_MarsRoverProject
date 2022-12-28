@@ -3,7 +3,8 @@ import cv2
 
 # Identify pixels above the threshold
 # Threshold of RGB > 160 does a nice job of identifying ground pixels only
-def color_thresh(img, rgb_thresh=(170, 170, 170)):
+#Improves Fidelity
+def color_thresh(img, rgb_thresh=(160, 160, 160)):
     # Create an array of zeros same xy size as img, but single channel
     color_select = np.zeros_like(img[:,:,0])
     # Require that each pixel be above all three threshold values in RGB
@@ -147,15 +148,20 @@ def perception_step(Rover):
         #          Rover.worldmap[rock_y_world, rock_x_world, 1] += 1
         #          Rover.worldmap[navigable_y_world, navigable_x_world, 2] += 1
 
-    if ((Rover.roll < 1) | (Rover.roll > 359) )& ((Rover.pitch < 1) | (Rover.pitch > 359)):
+    #Improves Fidelity
+    if ((Rover.roll < 0.5)  )& ((Rover.pitch < 0.5) ):
         Rover.worldmap[obs_y_world, obs_x_world, 0] = 255
-        Rover.worldmap[rock_y_world, rock_x_world, 1] = 255
+        
         Rover.worldmap[y_world, x_world, 2] = 255    
-                    # remove overlap mesurements
-        nav_pix = Rover.worldmap[:, :, 2] > 0
-        Rover.worldmap[nav_pix, 0] = 0
-            # clip to avoid overflow
-        Rover.worldmap = np.clip(Rover.worldmap, 0, 255)
+        
+    nav_pix = Rover.worldmap[:, :, 2] > 0
+    Rover.worldmap[nav_pix, 0] = 0
+    # clip to avoid overflow
+    Rover.worldmap = np.clip(Rover.worldmap, 0, 255)
+
+    dist, angles = to_polar_coords(xpix, ypix)
+    Rover.nav_dists = dist
+    Rover.nav_angles = angles
 
     # 8) Convert rover-centric pixel positions to polar coordinates
     # Update Rover pixel distances and angles
@@ -163,12 +169,20 @@ def perception_step(Rover):
         # Rover.nav_angles = rover_centric_angles
 
 
-    dist, angles = to_polar_coords(xpix, ypix)
-    Rover.nav_dists = dist
-    Rover.nav_angles = angles
-    dist, angles = to_polar_coords(rock_xpix, rock_ypix)
-    Rover.samples_dists = dist
-    Rover.samples_angles = angles
+
+    if rock_img.any():
+        rock_xpix, rock_ypix = rover_coords(rock_img)
+        rock_x_world, rock_y_world = pix_to_world(rock_xpix, rock_ypix, xpos, ypos, yaw, world_size, scale)
+        Rover.worldmap[rock_y_world, rock_x_world, 1] = 255
+
+        rock_pix = Rover.worldmap[:, :, 1]>0
+        Rover.worldmap[rock_pix,0]=0
+        
+
+        
+
+
+
  
     
     
