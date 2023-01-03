@@ -84,8 +84,8 @@ def find_rock(img, yellow_thresh=(110, 110, 50)):
 # Apply the above functions in succession and update the Rover state accordingly
 def perception_step(Rover):
     #save Start position
-    #if Rover.start_pos == None:
-      #  Rover.start_pos = Rover.pos
+    if Rover.start_pos == None:
+        Rover.start_pos = Rover.pos
     # Perform perception steps to update Rover()
     # TODO: 
     # NOTE: camera image is coming to you in Rover.img

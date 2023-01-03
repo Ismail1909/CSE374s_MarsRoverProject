@@ -8,13 +8,22 @@ def decision_step(Rover):
     # Implement conditionals to decide what to do given perception data
     # Here you're all set up with some basic functionality but you'll need to
     # improve on this decision tree to do a good job of navigating autonomously!
-    offset=0
+    
         # Steering proportional to the deviation results in
         # small offsets on straight lines and
         # large values in turns and open areas
     offset = 0.65 * np.std(Rover.nav_angles)
     # Example:
     # Check if we have vision data to make decisions with
+    if Rover.samples_collected >= 5:
+        distance = ((Rover.pos[0]-Rover.start_pos[0])**2 + (Rover.pos[1]-Rover.start_pos[1])**2)
+        #if(distance <=10):
+            #Rover.steer = np.clip(np.mean(Rover.nav_angles * 180/np.pi)+12, -15, 15)
+        if(distance <= 10):
+            Rover.brake = 10
+            while(1):
+                Rover.throttle = 0
+
     if Rover.nav_angles is not None:
         
         # Check for Rover.mode status
@@ -163,6 +172,7 @@ def decision_step(Rover):
         Rover.throttle=0
         Rover.steer = 0
         Rover.send_pickup = True
+        Rover.samples_collected += 1
         Rover.throttle=Rover.throttle_set
     
     return Rover
