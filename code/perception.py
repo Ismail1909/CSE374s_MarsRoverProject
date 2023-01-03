@@ -134,7 +134,7 @@ def perception_step(Rover):
     # 5) Convert rover-centric pixel values to world coords
     
     world_size = Rover.worldmap.shape[0]
-    scale = 2 * dst_size
+    scale = 3 * dst_size
     yaw = Rover.yaw
     xpos, ypos = Rover.pos
     
@@ -147,20 +147,21 @@ def perception_step(Rover):
         #          Rover.worldmap[rock_y_world, rock_x_world, 1] += 1
         #          Rover.worldmap[navigable_y_world, navigable_x_world, 2] += 1
 
-    #Improves Fidelity
-    if ((Rover.roll < 0.5)  )& ((Rover.pitch < 0.5) ):
+    #If roll and pitch values are near zero, then the image is valid.
+    if ((Rover.roll < 0.5)& (Rover.pitch < 0.5)):
         Rover.worldmap[obs_y_world, obs_x_world, 0] = 255
         
-        Rover.worldmap[y_world, x_world, 2] = 255   
+        Rover.worldmap[y_world, x_world, 2] = 255
+        nav_pix = Rover.worldmap[:, :, 2] > 0
+        Rover.worldmap[nav_pix, 0] = 0
+        # clip to avoid overflow
+        Rover.worldmap = np.clip(Rover.worldmap, 0, 255)   
 
     # 8) Convert rover-centric pixel positions to polar coordinates
     # Update Rover pixel distances and angles
         # Rover.nav_dists = rover_centric_pixel_distances
         # Rover.nav_angles = rover_centric_angles
-    nav_pix = Rover.worldmap[:, :, 2] > 0
-    Rover.worldmap[nav_pix, 0] = 0
-    # clip to avoid overflow
-    Rover.worldmap = np.clip(Rover.worldmap, 0, 255)
+
 
     dist, angles = to_polar_coords(xpix, ypix)
     Rover.nav_dists = dist
@@ -170,10 +171,10 @@ def perception_step(Rover):
     Rover.samples_angles = angles
     rock_dir = np.mean(angles)
     if rock_img.any():
-        
-        Rover.worldmap[rock_y_world, rock_x_world, 1] = 255
-        rock_pix = Rover.worldmap[:, :, 1]>0
-        Rover.worldmap[rock_pix,0]=0
+        if ((Rover.roll < 0.5 or Rover.roll > 359.5)  )& ((Rover.pitch < 0.5 or Rover.pitch > 359.5) ):
+            Rover.worldmap[rock_y_world, rock_x_world, 1] = 255
+            rock_pix = Rover.worldmap[:, :, 1]>0
+            Rover.worldmap[rock_pix,0]=0
     else:
         Rover.vision_image[:,:,1] = 0
     
